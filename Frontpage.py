@@ -39,10 +39,9 @@ sl.header("Upload Schedules")
 
 mismatch = False
 mismatchB = False
-
 sl.write("In the upload boxes below you can upload a bus schedule for the tool to examine. In total two schedules can be uploaded. Please ensure that the schedule matches the required format. For more information on the correct format visit the How To Use page.")
 if sl.session_state['full'] == True:
-    sl.subheader("There are currently already uploaded schedules. Please reset the tool before uploading more.")
+    sl.markdown("**:red[There are currently already uploaded schedules. Please reset the tool before uploading more.]**")
 planning = sl.file_uploader('Upload schedule A here.', type=['xlsx'])
 #Hiermee weten de andere paginas dat er een upload is, het update ook alleen de data wanneer er iets upload dus geen reset.
 if planning is not None: 
@@ -126,31 +125,15 @@ if 'dienstregeling' not in sl.session_state:
 
     
 #Hier kan de state of health door de gebruiker bepaald worden. Uit zichzelf staat er altijd al 90%
-sl.header("Weet nog niet of ik deze hier wil laten")
-with sl.expander("Details"):
-    sl.write("Please input a percentage for the state of health:")
-    soc = sl.number_input('State of Health')
-    
-    
-    if 'soc' not in sl.session_state or soc == 0:
-        sl.session_state['soc'] = 90
-        soc = 90
-    elif int(soc) > 0:
-        sl.session_state['soc'] = float(soc)
-        
-    sl.write('The current state of health is ', str(sl.session_state['soc']), " %")
-    if float(soc) < 85:
-        sl.markdown("Beware! This is a very low value. Recommended: 85% - 95%.")
-    if float(soc) > 95:
-        sl.markdown("Beware! This is a very high value. Recommended:  85% - 95%.")
-    
-    sl.write("Please enter how many kwh the bus uses per meter:")
-    verbruik = sl.number_input('Usage', format='%.4f')
-    if 'stroomverbruik' not in sl.session_state:
-        sl.session_state['stroomverbruik'] = 0.00100
-    elif verbruik > 0:
-        sl.session_state['stroomverbruik']=verbruik
-    sl.markdown("The current usage is " + str(sl.session_state['stroomverbruik']) + ' kwh per meter.')
+
+
+if 'soc' not in sl.session_state:
+    sl.session_state['soc'] = 90
+
+
+if 'stroomverbruik' not in sl.session_state:
+    sl.session_state['stroomverbruik'] = 0.00100
+
 
 
 if planning is not None and mismatch==False:

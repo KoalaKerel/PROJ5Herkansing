@@ -21,11 +21,13 @@ if sl.session_state['mismatch'] == True and sl.session_state['noinput']==False:
     
 if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == False:
     sl.header("Change Data")
-    sl.markdown("On this page you can change the data for routes and the values for both State of Health and Power Usage.")
+    sl.markdown("On this page you can change the data for routes and the values for both State of Health and Power Usage. By default the tool will be configured for the 400 and 401 busroutes in Eindhoven. The state of health and power usage values have also been given a default value.")
     
     halt1 = False
     halt2 = False
-    new_upload = sl.file_uploader('Data uploader', type=['xlsx'])
+    sl.header("Change Routes")
+    sl.write("This tool is capable of analysing schedules created for routes other than the 400 and 401 routes in Eindhoven. In order for the tool to be able to check these schedules additional information must be provided in the form of an excel file. This file must match the format requirements. To learn more about the format requirements please visit the How to Use page. In the uploadbox below you can upload the additional data.")
+    new_upload = sl.file_uploader('', type=['xlsx'])
     
     if new_upload is None:
         usedata = sl.session_state['dienstdata']
@@ -77,13 +79,24 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
             sl.image(Image.open('little error.png'))
             sl.markdown("Currently the data is not compatible with the shedule. The following routes are currently active:")
         else:
-            sl.markdown("The following routes are currently active:")
+            sl.markdown("**The following routes are currently active:**")
             sl.session_state['wrongdata'] = False
+        activeroutesstr = ""
         for i in activeroutes:
-            sl.markdown(i)
+            activeroutesstr = activeroutesstr + str(i)[:3] + "             "
+        sl.markdown(activeroutesstr)
+        
             
-        if len(usedienst.columns) > 4:
-            usedienst.drop(columns=usedienst.columns[[4, 5]],  axis=1, inplace=True)
-        sl.markdown("These routes are required to make the following trips:")
-        sl.dataframe(usedienst)
-    
+    sl.header("Adjust State of Health Value")
+    sl.write("The State of Health or SoH indicates the percentage of the original battery storage the battery can still use. Over time the power storage degrades and can no longer be filled to it's original capacity. Here you may select the state of health to accurately reflect the batteries.")
+    soh = sl.slider("", 75, 100, sl.session_state['soc'])
+    if sl.session_state['soc'] != soh:
+        sl.session_state['soc'] = soh
+    sl.write(f"**The current state of health is {soh}%**")
+
+    sl.header("Adjust the Power Usage")
+    sl.write("The busses use electricity to propel themselves forward. However the power usage of the busses is not always the same. Here you can adjust the power usage of the busses according to the situation.")
+    usage = sl.slider("", 0.1, 3.0, float(sl.session_state['stroomverbruik']*1000), step=0.1)
+    if sl.session_state['stroomverbruik'] != usage/1000:
+        sl.session_state['stroomverbruik'] = usage/1000
+    sl.write(f"**The current usage is {usage} joules per kilometer**")
