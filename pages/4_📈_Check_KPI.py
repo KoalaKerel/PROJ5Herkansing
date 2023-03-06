@@ -35,12 +35,12 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
     with sl.expander("What KPIs are used?"):
         sl.write("This tool uses 8 different statistics to express the quality of the schedule. Here each statistic will be explained and indicated wether or not it is should be decreased or increased for more success.")
         sl.write("**DD** is a KPI provided by Conexxion. It is defined as the total")
-        sl.write("**Distance**")
-        sl.write("**Activity time** and **Passenger time**")
-        sl.write("**Time spent idling**")
-        sl.write("**Time spent charging**")
-        sl.write("**Amount of busses**")
-        sl.write("**Activity score**")
+        sl.write("**Distance** reports the distance traveled during the timespan indicated by the schedule. Each activity has a set distance associated with it. Because higher distance traveled causes higher energy costs, it is recommended that distance is minimized.")
+        sl.write("**Activity time** and **Passenger time** are values used in the calculation of the DD score. These can be used to explain the DD score. Generally a high amount of time with passengers is recommended. The difference between activity time and time with passengers is the time that could be further optimized.")
+        sl.write("**Time spent idling** is the time in which the bus undertakes the idle activity. This means it is stationary and does not transport any passengers and uses a low amount of power.")
+        sl.write("**Time spent charging** is the time in which the bus is recharging its battery. This amount should be minimized if possible so the time can be used more effectively. However, if it is lowered too much the bus will run out of power during its activities. To check if the bus can complete its tasks without coming to an unexpected standstill please check the Check for Errors page")
+        sl.write("**Amount of busses** indicates how many buses the schedule in question uses. To satisfy the requirements it is certain mutliple busses will be needed. However, generally a lower amount of busses is prefered. When the amount of busses is low it will ease the creation of schedules for other bus routes.")
+        sl.write("**Activity score** is a score based on a ranking of activities. Not all activities are equally useful. In order to judge if schedules use effective methods, a point based system has been developed. Passenger trips and charging are considered the best activities and are awarded 2 points. Idling is considered the best alternative because of it's low power usage and is awarded 1 point. Material trips are considered unoptimal and are not awarded any point. A higher score indicates a more effective planning.")
 
     
     #basedata = {'activiteit':['ehvaptehvbst400', 'ehvbstehvapt400', 'ehvaptehvbst401', 'ehvbstehvapt401', 'ehvbstehvaptm', 'ehvaptehvbstm', 'ehvbstehvgarm', 'ehvgarehvbstm', 'ehvaptehvgarm', 'ehvgarehvaptm', 'charge', 'idle'],
@@ -120,6 +120,7 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
     avgdf = pd.DataFrame(data=avginp)  
     sl.dataframe(avgdf) 
     
+    sl.header("Power over time (VERPLAATSEN)")
     from plancheck import *
     selected = sl.multiselect('select:',bussen[1:])
     for i in selected:

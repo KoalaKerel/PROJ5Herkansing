@@ -39,7 +39,7 @@ sl.header("Upload Schedules")
 
 mismatch = False
 mismatchB = False
-sl.write("In the upload boxes below you can upload a bus schedule for the tool to examine. In total two schedules can be uploaded. Please ensure that the schedule matches the required format. For more information on the correct format visit the How To Use page.")
+sl.write("In the upload boxes below you can upload a bus schedule for the tool to examine. In total two schedules can be uploaded. Please ensure that the schedule matches the required format. For more information on the correct format visit the How To Use page. If there is just a single schedule to upload, please use uploadbox A.")
 if sl.session_state['full'] == True:
     sl.markdown("**:red[There are currently already uploaded schedules. Please reset the tool before uploading more.]**")
 planning = sl.file_uploader('Upload schedule A here.', type=['xlsx'])
@@ -82,12 +82,17 @@ if planningB is not None:
 if (planning is not None) or (planningB is not None):
     sl.session_state['full'] = True
     
+if (planning is not None) and (planningB is not None):
+    if np.array_equal(planningdf.buslijn.unique(), planningdfB.buslijn.unique(), equal_nan=True)==False:
+        sl.markdown("**:red[The two uploaded schedules do not have matching routes. Please check the files that were uploaded. Reset the tool with the button below and try again.]**")
+    
 if (mismatchB == True) or (mismatch == True):
     sl.write("One of the provided bus schedules does not satisfy the format requirements. Please use the reset button below to remove the schedules and ensure the uploads are correctly formatted. For more information on the correct format please visit the How To Use page.")
     sl.session_state['mismatch'] = True
 if (planning is not None) and (planningB is not None) and (mismatch == False) and (mismatchB == False):
     sl.write("Both schedules have been succesfully uploaded and satisfy the format requirements. If you wish to remove the schedules and examine new ones, please press the reset button below.")
     sl.session_state['mismatch'] = False
+
 sl.header("Reset Button.")
 sl.write("If you wish to undo your uploads and reupload a new file, you first need to press the button below.")
 if sl.button('Reset tool'):
