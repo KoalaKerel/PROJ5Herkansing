@@ -54,15 +54,20 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
     #sl.dataframe(idata)
     
     totdist = 0
+    totscore = 0
     for ind in range(len(data)):
         totdist = totdist + idata.loc[idata['activiteit']==data.type[ind], 'afstand in meters'].iloc[0]
+        if (data.activiteit[ind] == 'dienst rit') or (data.activiteit[ind] == 'opladen'):
+            totscore = totscore + 2
+        if data.activiteit[ind] == 'idle':
+            totscore = totscore + 1
     toturen = sum(data.tte)
     totdienst = sum(data.tte[data.activiteit=="dienst rit"])
     totdd = toturen/totdienst#alle uren gedeeld door diensturen    
     totusage = totdist * 1.5
     totidle = sum(data.tte[data.activiteit=="idle"]) #Totale idletijd
     totcharge = sum(data.tte[data.type=="charge"])
-    inp = {'Statistic': ['DD', 'Totale distance (m)', 'Total time of activity', 'Total time with passengers', 'Total time spent idling', 'Total time spent charging'], 'Value':[totdd, int(totdist), datetime.timedelta(minutes=toturen), datetime.timedelta(minutes=totdienst), datetime.timedelta(minutes=totidle), datetime.timedelta(minutes=totcharge)]}
+    inp = {'Statistic': ['DD', 'Totale distance (m)', 'Total time of activity', 'Total time with passengers', 'Total time spent idling', 'Total time spent charging', 'Amount of busses in schedule', 'Activity Score'], 'Value':[totdd, int(totdist), datetime.timedelta(minutes=toturen), datetime.timedelta(minutes=totdienst), datetime.timedelta(minutes=totidle), datetime.timedelta(minutes=totcharge), max(data['omloop nummer']), totscore]}
     totdf = pd.DataFrame(data=inp)  
     sl.header("Totals of all busses:")
     sl.write("Here you can find information on the sum of various values expressed through the schedule.")
@@ -79,14 +84,21 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
     charges =[]
     percs = []
     dds = []
+    scores = []
     
     for i in range(bussen+1)[1:]:
         tempdata = data[data['omloop nummer']==i]
         
         tempdist = 0
+        tempscore = 0
         for ind in list(tempdata.index.values):
             tempdist = tempdist + idata.loc[idata['activiteit']==tempdata.type[ind], 'afstand in meters'].iloc[0]
+            if (data.activiteit[ind] == 'dienst rit') or (data.activiteit[ind] == 'opladen'):
+                tempscore = tempscore + 2
+            if data.activiteit[ind] == 'idle':
+                tempscore = tempscore + 1
         dists.append(tempdist)
+        scores.append(tempscore)
         
         tempuren = sum(tempdata.tte)
         uren.append(tempuren)
@@ -110,13 +122,13 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
         
         tempperc = 100 * tempuren / timespan
         percs.append(tempperc)
-        tempinp = {'Statistic': ['DD', 'Total distance (m)', 'Percentage of time active', 'Amount of time active', 'Time with passengers', 'Time spent idling', 'Time spent charging'], 'Value':[ tempdd, tempdist, tempperc, datetime.timedelta(minutes=tempuren), datetime.timedelta(minutes=tempdienst), datetime.timedelta(minutes=tempidle), datetime.timedelta(minutes=tempcharge)]}
+        tempinp = {'Statistic': ['DD', 'Total distance (m)', 'Percentage of time active', 'Amount of time active', 'Time with passengers', 'Time spent idling', 'Time spent charging', 'Activity Score'], 'Value':[ tempdd, tempdist, tempperc, datetime.timedelta(minutes=tempuren), datetime.timedelta(minutes=tempdienst), datetime.timedelta(minutes=tempidle), datetime.timedelta(minutes=tempcharge), tempscore]}
         tempdf = pd.DataFrame(data=tempinp)    
         businfo.append(tempdf)
      
     sl.header("Average Statistics of all busses:")   
     sl.write("Here you may find the statistics of the average bus in each schedule. The types of statistics are the same as the totals table shown above.")
-    avginp = {'Statistic': ['Average DD', 'Average distance (m)', 'Average percentage of time active', 'Average amount of time active', 'Average time with passengers', 'Average time spent idling', 'Average time spent charging'], 'Value':[ sum(dds)/len(dds), sum(dists)/len(dists), sum(percs)/len(percs), datetime.timedelta(minutes=sum(uren)/len(uren)), datetime.timedelta(minutes=sum(diensts)/len(diensts)), datetime.timedelta(minutes=sum(idles)/len(idles)), datetime.timedelta(minutes=sum(charges)/len(charges))]} 
+    avginp = {'Statistic': ['Average DD', 'Average distance (m)', 'Average percentage of time active', 'Average amount of time active', 'Average time with passengers', 'Average time spent idling', 'Average time spent charging', 'Average activity score'], 'Value':[ sum(dds)/len(dds), sum(dists)/len(dists), sum(percs)/len(percs), datetime.timedelta(minutes=sum(uren)/len(uren)), datetime.timedelta(minutes=sum(diensts)/len(diensts)), datetime.timedelta(minutes=sum(idles)/len(idles)), datetime.timedelta(minutes=sum(charges)/len(charges)), sum(scores)/len(scores)]} 
     avgdf = pd.DataFrame(data=avginp)  
     sl.dataframe(avgdf) 
     
