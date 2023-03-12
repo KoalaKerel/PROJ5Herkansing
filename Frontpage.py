@@ -34,6 +34,8 @@ if 'datainput' not in sl.session_state:
     sl.session_state['dienstdata2'] = pd.ExcelFile("Connexxion data - 2022-2023.xlsx")
 if 'full' not in sl.session_state:
     sl.session_state['full']= False
+if 'Bactief' not in sl.session_state:
+    sl.session_state['Bactief'] = False
 #Het uploaden van een planning
 sl.header("Upload Schedules")
 
@@ -66,7 +68,8 @@ planningB = sl.file_uploader('Upload schedule B here.(Optional)', type=['xlsx'])
 #Hiermee weten de andere paginas dat er een upload is, het update ook alleen de data wanneer er iets upload dus geen reset.
 if planningB is not None: 
     planningdfB = pd.read_excel(planningB)
-    sl.session_state['datainputB'] = planningdf
+    sl.session_state['datainputB'] = planningdfB
+    sl.session_state['Bactief'] = True
     if planningdfB.columns.values.tolist() == ['startlocatie', 'eindlocatie', 'starttijd', 'eindtijd', 'activiteit', 'buslijn', 'omloop nummer']:
         mismatchB = False #De layout komt overeen
         sl.write("Schedule B has been succesfully uploaded and satisfies the format requirements.")
@@ -184,6 +187,44 @@ if planning is not None and mismatch==False:
             data['end_time'][i] = data['end_time'][i] + 1440
         if data['buslijn'][i] not in lijnen:
             data['buslijn'][i] = ""
+            
+    if sl.session_state['Bactief'] == True:
+        #Dataframe voorbereiden voor de andere paginas
+        dataB = sl.session_state['datainputB']
+        #lijnen
+        lijnenB = sl.session_state['lijnen']
+        #Het aanmaken van typen rit
+        dataB["type"] = np.nan
+        #Alle soorten ritten in kaart brengen
+        for i in range(len(dataB)):
+            if dataB.activiteit[i] == "idle":
+                dataB.type[i] = "idle"
+            if dataB.activiteit[i] == "opladen":
+                dataB.type[i] = "charge"
+            if dataB.activiteit[i] == "dienst rit":
+                dataB.type[i] = dataB.startlocatie[i] + dataB.eindlocatie[i] + str(dataB.buslijn[i])[:-2]
+            if dataB.activiteit[i] == "materiaal rit":
+                dataB.type[i] = dataB.startlocatie[i] + dataB.eindlocatie[i] + "m"
+        
+        for i in range(len(dataB)):
+            dataB['starttijd'][i] = str(dataB['starttijd'][i])
+            dataB['eindtijd'][i] = str(dataB['eindtijd'][i])
+        
+        dataB['start_time'] = pd.to_datetime(dataB.starttijd)
+        dataB['end_time'] = pd.to_datetime(dataB.eindtijd)
+        for i in range(len(dataB)):
+            dataB['start_time'][i] = dataB['start_time'][i].minute + 60 * dataB['start_time'][i].hour
+            dataB['end_time'][i] = dataB['end_time'][i].minute + 60 * dataB['end_time'][i].hour
+        dataB['tte'] = dataB.end_time - dataB.start_time
+        for i in range(len(dataB)):
+            if dataB['tte'][i]<0:
+                dataB['tte'][i] = dataB['tte'][i] + 1440
+            if dataB['start_time'][i]<300:
+                dataB['start_time'][i] = dataB['start_time'][i] + 1440
+            if dataB['end_time'][i]<300:
+                dataB['end_time'][i] = dataB['end_time'][i] + 1440
+            if dataB['buslijn'][i] not in lijnen:
+                dataB['buslijn'][i] = ""
     
 
 if (planning is not None) and (sl.session_state['mismatch'] == False):            

@@ -51,8 +51,9 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
     #idata = pd.DataFrame(data=basedata)
     idata = sl.session_state['dienstdata']
     data = sl.session_state['datainput']
-    #sl.dataframe(idata)
-    
+    if sl.session_state['Bactief'] == True:
+        dataB = sl.session_state['datainputB']
+   
     totdist = 0
     totscore = 0
     for ind in range(len(data)):
@@ -67,7 +68,25 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
     totusage = totdist * 1.5
     totidle = sum(data.tte[data.activiteit=="idle"]) #Totale idletijd
     totcharge = sum(data.tte[data.type=="charge"])
-    inp = {'Statistic': ['DD', 'Totale distance (m)', 'Total time of activity', 'Total time with passengers', 'Total time spent idling', 'Total time spent charging', 'Amount of busses in schedule', 'Activity Score'], 'Value':[totdd, int(totdist), datetime.timedelta(minutes=toturen), datetime.timedelta(minutes=totdienst), datetime.timedelta(minutes=totidle), datetime.timedelta(minutes=totcharge), max(data['omloop nummer']), totscore]}
+    
+    if sl.session_state['Bactief'] == True:
+        totdistB = 0
+        totscoreB = 0
+        for ind in range(len(dataB)):
+            totdistB = totdistB + idata.loc[idata['activiteit']==dataB.type[ind], 'afstand in meters'].iloc[0]
+            if (dataB.activiteit[ind] == 'dienst rit') or (dataB.activiteit[ind] == 'opladen'):
+                totscoreB = totscoreB + 2
+            if dataB.activiteit[ind] == 'idle':
+                totscoreB = totscoreB + 1
+        toturenB = sum(dataB.tte)
+        totdienstB = sum(dataB.tte[dataB.activiteit=="dienst rit"])
+        totddB = toturenB/totdienstB#alle uren gedeeld door diensturen    
+        totusageB = totdistB * 1.5
+        totidleB = sum(dataB.tte[dataB.activiteit=="idle"]) #Totale idletijd
+        totchargeB = sum(dataB.tte[dataB.type=="charge"])
+        inp = {'Statistic': ['DD', 'Totale distance (m)', 'Total time of activity', 'Total time with passengers', 'Total time spent idling', 'Total time spent charging', 'Amount of busses in schedule', 'Activity Score'],'Planning A':[totdd, int(totdist), datetime.timedelta(minutes=toturen), datetime.timedelta(minutes=totdienst), datetime.timedelta(minutes=totidle), datetime.timedelta(minutes=totcharge), max(data['omloop nummer']), totscore], 'Planning B':[totddB, int(totdistB), datetime.timedelta(minutes=toturenB), datetime.timedelta(minutes=totdienstB), datetime.timedelta(minutes=totidleB), datetime.timedelta(minutes=totchargeB), max(dataB['omloop nummer']), totscoreB]}
+    else:
+        inp = {'Statistic': ['DD', 'Totale distance (m)', 'Total time of activity', 'Total time with passengers', 'Total time spent idling', 'Total time spent charging', 'Amount of busses in schedule', 'Activity Score'], 'Planning A':[totdd, int(totdist), datetime.timedelta(minutes=toturen), datetime.timedelta(minutes=totdienst), datetime.timedelta(minutes=totidle), datetime.timedelta(minutes=totcharge), max(data['omloop nummer']), totscore]}
     totdf = pd.DataFrame(data=inp)  
     sl.header("Totals of all busses:")
     sl.write("Here you can find information on the sum of various values expressed through the schedule.")
