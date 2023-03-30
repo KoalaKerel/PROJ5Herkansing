@@ -53,7 +53,7 @@ with sl.expander("How to upload a schedule"):
         sl.image(img2)
         
 with sl.expander("The correct schedule format"):
-    img3 = Image.open('omloopformat.png')
+    img3 = Image.open('omloopformat.PNG')
     sl.write("In order for the tool to do it's job correctly the provided schedule must me correctly formatted. The schedule has to be an excel file. Each row portrays an activity undertaking during the schedule. The uploaded schedule must consists of 7 columns labeled as such:")
     sl.write("Startlocatie, eindlocatie, starttijd, eindtijd, activiteit, buslijn, omloopnummer.")
     sl.image(img3)
