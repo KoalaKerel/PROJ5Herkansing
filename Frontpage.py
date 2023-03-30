@@ -18,8 +18,9 @@ sl.set_page_config(
 
 sl.header("Welcome")
 sl.write("Welcome to this tool for examining bus schedules. This tool can be used to find errors in a bus schedule, as well to find useful statistics about the bus schedule that may assist in further optimization. In total two different schedules can be uploaded at the same time and be compared. For further information on how to utilise this tool please watch the video below or visit the How To Use page.")
-sl.header("Instructional Video:")
-sl.video('https://youtu.be/dQw4w9WgXcQ') #PLACEHOLDER VIDEO!
+with sl.expander("Click here to see the instructional video!"):    
+    sl.header("Instructional Video:")
+    sl.video('https://youtu.be/dQw4w9WgXcQ') #PLACEHOLDER VIDEO!
 
 
 planningdf = pd.DataFrame(columns=['buslijn']) #Om no input error te vermijden
@@ -42,6 +43,23 @@ sl.header("Upload Schedules")
 mismatch = False
 mismatchB = False
 sl.write("In the upload boxes below you can upload a bus schedule for the tool to examine. In total two schedules can be uploaded. Please ensure that the schedule matches the required format. For more information on the correct format visit the How To Use page. If there is just a single schedule to upload, please use uploadbox A.")
+with sl.expander("How to upload a schedule"):
+    sl.write("In order to examine a schedule, a schedule must first be uploaded. This can be done on the front page. Below the instructional video you can find the upload section. Here you will find an upload box where you can submit a file. By pressing 'Browse Files' a window will open. In this window you can navigate to the desired file to select it. After uploading a first file you have the option to upload a second file.")
+    img1 = Image.open('instruct1.png')
+    img2 = Image.open('instruct2.png')
+    col1, col2 = sl.columns(2)
+    with col1:
+        sl.image(img1)
+    with col2:
+        sl.image(img2)
+        
+with sl.expander("The correct schedule format"):
+    img3 = Image.open('omloopformat.png')
+    sl.write("In order for the tool to do it's job correctly the provided schedule must me correctly formatted. The schedule has to be an excel file. Each row portrays an activity undertaking during the schedule. The uploaded schedule must consists of 7 columns labeled as such:")
+    sl.write("Startlocatie, eindlocatie, starttijd, eindtijd, activiteit, buslijn, omloopnummer.")
+    sl.image(img3)
+    sl.markdown('**Startlocatie** contains the starting location of each activity, and **Eindlocatie** contains the ending location of each activity. **Starttijd** shows the time the activity starts, and **eindtijd** shows when the activity ends. The **activiteit** shows what activity the bus undertakes in that row. It can be one of 4 activities: Materiaal rit, dienst rit, idle or opladen. **Buslijn** shows which route the activity is taking place on, if any. **Omloopnummer** shows the number of the bus that relates to the activity in the row.')
+    
 if sl.session_state['full'] == True:
     sl.markdown("**:red[There are currently already uploaded schedules. Please reset the tool before uploading more.]**")
 planning = sl.file_uploader('Upload schedule A here.', type=['xlsx'])
@@ -115,7 +133,7 @@ if sl.button('Reset tool'):
         
     
 
-dienstdata = pd.read_excel("Connexxion data - 2022-2023.xlsx", sheet_name=1)
+dienstdata = pd.read_excel("Connexxion data.xlsx", sheet_name=1)
 dienstdata['activiteit'] = ''
 for i in range(len(dienstdata)):
     if np.isnan(dienstdata['buslijn'][i])==False:
@@ -124,11 +142,11 @@ for i in range(len(dienstdata)):
         dienstdata['activiteit'][i] = dienstdata['startlocatie'][i]+dienstdata['eindlocatie'][i]+'m'
 dienstdata = dienstdata.append({'startlocatie':'', 'eindlocatie': '', 'min reistijd in min': 0, 'max reistijd in min': 0, 'afstand in meters': 0, 'buslijn': np.nan, 'activiteit':'idle'}, ignore_index=True)
 dienstdata = dienstdata.append({'startlocatie':'', 'eindlocatie': '', 'min reistijd in min': 0, 'max reistijd in min': 0, 'afstand in meters': 0, 'buslijn': np.nan, 'activiteit':'charge'}, ignore_index=True)
-dienstregeling = pd.read_excel("Connexxion data - 2022-2023.xlsx")
+dienstregeling = pd.read_excel("Connexxion data.xlsx")
 if 'dienstregeling' not in sl.session_state:
     sl.session_state['dienstdata'] =  dienstdata
     sl.session_state['dienstregeling'] = dienstregeling
-    sl.session_state['dienstdata2'] = pd.ExcelFile("Connexxion data - 2022-2023.xlsx")
+    sl.session_state['dienstdata2'] = pd.ExcelFile("Connexxion data.xlsx")
 
 
     
