@@ -127,7 +127,7 @@ if sl.button('Reset tool'):
     if 'datainput' not in sl.session_state:
         sl.session_state['datainput'] = pd.read_excel('Empty Schedule.xlsx')
         sl.session_state['dienstdata2'] = pd.ExcelFile("Connexxion data - 2022-2023.xlsx")
-    sl.experimental_rerun
+    sl.experimental_rerun()
     
         
     
