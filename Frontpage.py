@@ -9,7 +9,6 @@ import pandas as pd
 import streamlit as sl
 import numpy as np
 from PIL import Image
-import pyautogui
 
 sl.set_page_config(
     page_title="Startpagina Tool",
@@ -128,7 +127,7 @@ if sl.button('Reset tool'):
     if 'datainput' not in sl.session_state:
         sl.session_state['datainput'] = pd.read_excel('Empty Schedule.xlsx')
         sl.session_state['dienstdata2'] = pd.ExcelFile("Connexxion data - 2022-2023.xlsx")
-    pyautogui.hotkey("ctrl","F5")
+    sl.experimental_rerun
     
         
     
