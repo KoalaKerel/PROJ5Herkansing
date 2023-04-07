@@ -19,7 +19,7 @@ sl.header("Welcome")
 sl.write("Welcome to this tool for examining bus schedules. This tool can be used to find errors in a bus schedule, as well to find useful statistics about the bus schedule that may assist in further optimization. In total two different schedules can be uploaded at the same time and be compared. For further information on how to utilise this tool please watch the video below or visit the How To Use page.")
 with sl.expander("Click here to see the instructional video!"):    
     sl.header("Instructional Video:")
-    sl.video('https://youtu.be/dQw4w9WgXcQ') #PLACEHOLDER VIDEO!
+    sl.video('https://youtu.be/7mq611qjodg') #PLACEHOLDER VIDEO!
 
 
 planningdf = pd.DataFrame(columns=['buslijn']) #Om no input error te vermijden
