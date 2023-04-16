@@ -12,7 +12,7 @@ from matplotlib.patches import Patch
 import streamlit as sl
 from PIL import Image
 
-sl.set_page_config(page_title="Planning", page_icon="📅")
+sl.set_page_config(page_title="Visualization", page_icon="📅")
 
 #Aangeven dat er data onbreekt
 if sl.session_state['noinput'] == True:
@@ -126,7 +126,7 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
     power = []
     alltimes =[]
     for bus in data['omloop nummer'].unique():
-        current = data[data['omloop nummer']==bus]
+        current = data[data['omloop nummer']==bus].sort_values(by=['start_time'])
         soc = 350000 * soh/100 * 0.9
         socs = []
         for i in current.index.values.tolist():
@@ -136,6 +136,9 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
                 soc = soc + current.tte[i] * 4.1667
                 if soc > 350000 * soh/100 * 0.9:
                     soc = 350000 * soh/100 * 0.9
+                elif current.activiteit[i] == 'idle':
+                    soc = soc - (current.tte[i]*0.01)
+                    sl.write(current.tte[i])
             else:
                 soc = soc - (idata.loc[idata['activiteit']==current.type[i], 'afstand in meters'].iloc[0] * usage)
         times = current.start_time
@@ -144,7 +147,7 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
     
     sl.header("Power visualisation")
     sl.write("Here you can find visualisations of the amount of power the bus has over time. You can select which bus' graph you want to view in the select box below. If two schedules are uploaded each schedule will have a seperate selectionbox.")
-    bussen = data['omloop nummer'].unique()
+    bussen = range(len(data['omloop nummer'].unique())+1)[1:]
     sl.markdown('**Schedule A**')
     selected = sl.multiselect('select for schedule A:',bussen)
     for i in selected:
@@ -173,7 +176,7 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
         powerB = []
         alltimesB =[]
         for bus in dataB['omloop nummer'].unique():
-            current = dataB[dataB['omloop nummer']==bus]
+            current = dataB[dataB['omloop nummer']==bus].sort_values(by=['start_time'])
             soc = 350000 * soh/100 * 0.9
             socs = []
             for i in current.index.values.tolist():
@@ -183,13 +186,15 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
                     soc = soc + current.tte[i] * 4.1667
                     if soc > 350000 * soh/100 * 0.9:
                         soc = 350000 * soh/100 * 0.9
+                elif current.activiteit[i] == 'idle':
+                    soc = soc - (current.tte[i]*0.01)
                 else:
                     soc = soc - (idata.loc[idata['activiteit']==current.type[i], 'afstand in meters'].iloc[0] * usage)
             times = current.start_time
             alltimesB.append(times)
             powerB.append(socs)
         
-        bussenB = dataB['omloop nummer'].unique()
+        bussenB = range(len(dataB['omloop nummer'].unique())+1)[1:]
         sl.markdown('**Schedule B**')
         selectedB = sl.multiselect('select for schedule B:',bussenB-1)
         for i in selectedB:
@@ -215,3 +220,4 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
             poweraxB.set_xticklabels(xticklabels, rotation=45)
             
             sl.pyplot(powerfigB) 
+            

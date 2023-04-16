@@ -29,7 +29,15 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
     sl.write("This tool is capable of analysing schedules created for routes other than the 400 and 401 routes in Eindhoven. In order for the tool to be able to check these schedules additional information must be provided in the form of an excel file. This file must match the format requirements. To learn more about the format requirements please visit the How to Use page. In the uploadbox below you can upload the additional data.")
     with sl.expander("How to change routes"):
         sl.write("If the uploaded schedule concerns itself with different routes, data regarding the new routes must be provided. This can be done on the Change Route page. On the Change Route page you will find an uploadbox where you can upload new data. By default the tool will use data for the 400 and 401 routes. The provided data must be formatted correctly in order for the tool to utilise it.")
-        sl.write("Hier komen nog afbeeldingen en info over format.")
+        sl.write("The first tab of the data file is called Dienstregeling. It contains the following columns: Startlocatie, vertrektijd, eindlocatie and buslijn.")
+        sl.write("The second tab of the data file is called Afstand Matrix. It contains the following columns: startlocatie, eindlocatie, min reistijd in min, max reistijd in min, afstand in meters and buslijn.")
+        img1 = Image.open('datainput1.png')
+        img2 = Image.open('datainput2.png')
+        col1, col2 = sl.columns(2)
+        with col1:
+            sl.image(img1)
+        with col2:
+            sl.image(img2)
     new_upload = sl.file_uploader('', type=['xlsx'])
     
     if new_upload is None:

@@ -13,7 +13,7 @@ from matplotlib.patches import Patch
 import streamlit as sl
 from PIL import Image
 
-sl.set_page_config(page_title="Controle", page_icon="🔎")
+sl.set_page_config(page_title="Check for Problems", page_icon="🔎")
 
 if sl.session_state['noinput'] == True:
     sl.markdown("No schedule has been uploaded. Please return to the frontpage and upload a schedule.")
@@ -42,6 +42,8 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
     power = []
     for bus in dataA['omloop nummer'].unique():
         current = dataA[dataA['omloop nummer']==bus]
+        current.reset_index(drop=True, inplace=True)
+        current = current.sort_values(by=['start_time'])
         soc = 350000 * soh/100 * 0.9
         socs = []
         for i in current.index.values.tolist():
@@ -49,6 +51,10 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
             socs.append(soc)
             if current.activiteit[i] == 'opladen':
                 soc = soc + current.tte[i] * 4.1667
+                if soc > 350000 * soh/100 * 0.9:
+                    soc = 350000 * soh/100 * 0.9
+            elif current.activiteit[i] == 'idle':
+                soc = soc - (current.tte[i]*0.01)
             else:
                 soc = soc - (idata.loc[idata['activiteit']==current.type[i], 'afstand in meters'].iloc[0] * usage)
             if soc <= (350000 * soh/100 * 0.1):
@@ -72,7 +78,7 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
                 
         power.append(socs)
         
-    derrors = pd.DataFrame(columns=['Error Type', 'Location', 'Timestamp'])
+    derrors = pd.DataFrame(columns=['Error Type', 'Location', 'Timestamp', 'Route'])
     dienst = sl.session_state['dienstregeling']
     for i in range(len(dienst)):
         dienst['vertrektijd'][i] = str(dienst['vertrektijd'][i])
@@ -89,11 +95,11 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
         possibles = possibles[possibles.activiteit == 'dienst rit']
         #Demand not satisfied
         if len(possibles[possibles.startlocatie == dienst.startlocatie[i]]) < 1:
-            newerror = ['Demand not satisfied', dienst.startlocatie[i], dienst.vertrektijd[i]]
+            newerror = ['Demand not satisfied', dienst.startlocatie[i], dienst.vertrektijd[i], dienst.buslijn[i]]
             derrors.loc[len(derrors)] = newerror
         #Double busses
         if len(possibles[possibles.startlocatie == dienst.startlocatie[i]]) > 1:
-            newerror = ['Double Bus Planned', dienst.startlocatie[i], dienst.vertrektijd[i]]
+            newerror = ['Double Bus Planned', dienst.startlocatie[i], dienst.vertrektijd[i], dienst.buslijn[i]]
             derrors.loc[len(derrors)] = newerror
 
     
@@ -104,13 +110,19 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
         powerB = []
         for bus in dataB['omloop nummer'].unique():
             current = dataB[dataB['omloop nummer']==bus]
+            current.reset_index(drop=True, inplace=True)
+            current = current.sort_values(by=['start_time'])
             soc = 350000 * soh/100 * 0.9
             socs = []
-            for i in current.index.values.tolist():
+            for i in len(current):
                 #Out of power
                 socs.append(soc)
                 if current.activiteit[i] == 'opladen':
                     soc = soc + current.tte[i] * 4.1667
+                    if soc > 350000 * soh/100 * 0.9:
+                        soc = 350000 * soh/100 * 0.9
+                elif current.activiteit[i] == 'idle':
+                    soc = soc - (current.tte[i]*0.01)
                 else:
                     soc = soc - (idata.loc[idata['activiteit']==current.type[i], 'afstand in meters'].iloc[0] * usage)
                 if soc <= (350000 * soh/100 * 0.1):
@@ -134,18 +146,18 @@ if sl.session_state['mismatch'] == False and sl.session_state['noinput'] == Fals
                     
             power.append(socs)
             
-        derrorsB = pd.DataFrame(columns=['Error Type', 'Location', 'Timestamp'])
+        derrorsB = pd.DataFrame(columns=['Error Type', 'Location', 'Timestamp', 'Route'])
         
         for i in range(len(dienst)):
             possibles = dataB[dataB.start_time == dienst.start_time[i]]
             possibles = possibles[possibles.activiteit == 'dienst rit']
             #Demand not satisfied
             if len(possibles[possibles.startlocatie == dienst.startlocatie[i]]) < 1:
-                newerror = ['Demand not satisfied', dienst.startlocatie[i], dienst.vertrektijd[i]]
+                newerror = ['Demand not satisfied', dienst.startlocatie[i], dienst.vertrektijd[i], dienst.buslijn[i]]
                 derrorsB.loc[len(derrorsB)] = newerror
             #Double busses
             if len(possibles[possibles.startlocatie == dienst.startlocatie[i]]) > 1:
-                newerror = ['Double Bus Planned', dienst.startlocatie[i], dienst.vertrektijd[i]]
+                newerror = ['Double Bus Planned', dienst.startlocatie[i], dienst.vertrektijd[i], dienst.buslijn[i]]
                 derrorsB.loc[len(derrorsB)] = newerror
 
     sl.header("Check for errors")
